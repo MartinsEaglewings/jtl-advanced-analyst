@@ -18,15 +18,7 @@ def get_twelve_data_api_key():
 
 
 def get_api_key():
-    if not KEY_FILE.exists():
-        raise RuntimeError("Twelve Data API key not configured.")
-
-    key = KEY_FILE.read_text().strip()
-
-    if not key:
-        raise RuntimeError("Twelve Data API key is empty.")
-
-    return key
+    return get_twelve_data_api_key()
 
 
 def request(endpoint, params=None):
