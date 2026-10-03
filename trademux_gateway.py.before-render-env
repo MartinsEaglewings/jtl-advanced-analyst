@@ -1,0 +1,104 @@
+import os
+from pathlib import Path
+from trademux import MTClient
+
+
+_KEY_FILE = Path(".trademux_api_key")
+
+
+class TradeMuxGateway:
+
+    def __init__(self):
+        self.client = None
+        self.error = None
+
+        try:
+            if not _KEY_FILE.exists():
+                raise RuntimeError("TradeMux API key file is missing.")
+
+            key = _KEY_FILE.read_text().strip()
+
+            if not key:
+                raise RuntimeError("TradeMux API key file is empty.")
+
+            self.client = MTClient(api_key=key)
+
+        except Exception as exc:
+            self.error = str(exc)
+
+    def status(self):
+        result = {
+            "api_configured": False,
+            "server_connected": False,
+            "mt_account_connected": False,
+            "account_available": False,
+            "status": "NOT CONFIGURED",
+            "error": None,
+        }
+
+        if self.client is None:
+            result["error"] = self.error or "TradeMux client could not be created."
+            return result
+
+        result["api_configured"] = True
+
+        try:
+            server = self.client.get_server_status()
+            result["server_connected"] = (
+                isinstance(server, dict)
+                and server.get("status") == "ok"
+            )
+        except Exception as exc:
+            result["error"] = str(exc)
+            result["status"] = "API ERROR"
+            return result
+
+        try:
+            result["mt_account_connected"] = bool(
+                self.client.is_connected()
+                and self.client.account_no is not None
+            )
+        except Exception as exc:
+            result["error"] = str(exc)
+
+        try:
+            account = self.client.get_account_info()
+
+            if account is not None:
+                result["account_available"] = True
+
+        except Exception as exc:
+            error_text = str(exc)
+
+            if "404" not in error_text:
+                result["error"] = error_text
+
+        if not result["server_connected"]:
+            result["status"] = "SERVER OFFLINE"
+
+        elif result["account_available"]:
+            result["status"] = "MT ACCOUNT CONNECTED"
+
+        elif result["mt_account_connected"]:
+            result["status"] = "MT ACCOUNT CONNECTED / DATA WAITING"
+
+        else:
+            result["status"] = "API CONNECTED / MT ACCOUNT WAITING"
+
+        return result
+
+
+_gateway = None
+
+
+def get_trademux_gateway():
+    global _gateway
+
+    if _gateway is None:
+        _gateway = TradeMuxGateway()
+
+    return _gateway
+
+
+def get_trademux_status():
+    return get_trademux_gateway().status()

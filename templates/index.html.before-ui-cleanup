@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>JTL ADVANCED — Unified Terminal</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+<div class="terminal">
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+
+        <div class="brand-area">
+            <div class="brand-mark">JTL</div>
+
+            <div>
+                <div class="brand">
+                    JTL ADVANCED
+                </div>
+
+                <div class="brand-subtitle">
+                    UNIFIED TRADING TERMINAL
+                </div>
+            </div>
+        </div>
+
+        <div class="system-status">
+            <span id="connectionDot"
+                  class="status-dot"></span>
+
+            <span id="connectionText">
+                CONNECTING
+            </span>
+        </div>
+
+    </header>
+
+
+    <!-- MARKET CONTROL BAR -->
+    <section class="market-control">
+
+        <div class="market-selector">
+
+            <label>MARKET</label>
+
+            <select id="cryptoSelect">
+                <option value="BTC/USD">
+                    BTC/USD
+                </option>
+            </select>
+
+        </div>
+
+
+        <div class="market-selector">
+
+            <label>TIMEFRAME</label>
+
+            <select id="interval">
+
+                <option value="1min">1 MIN</option>
+                <option value="5min">5 MIN</option>
+                <option value="15min">15 MIN</option>
+                <option value="30min">30 MIN</option>
+                <option value="45min">45 MIN</option>
+                <option value="1h">1 HOUR</option>
+                <option value="2h">2 HOURS</option>
+                <option value="4h">4 HOURS</option>
+                <option value="8h">8 HOURS</option>
+                <option value="1day" selected>1 DAY</option>
+                <option value="1week">1 WEEK</option>
+                <option value="1month">1 MONTH</option>
+
+            </select>
+
+        </div>
+
+
+        <button id="analyzeButton"
+                class="analyze-button">
+
+            ANALYZE MARKET
+
+        </button>
+
+
+        <div class="live-price">
+
+            <span id="marketSymbol">
+                BTC/USD
+            </span>
+
+            <strong id="currentPrice">
+                —
+            </strong>
+
+            <small id="marketMeta">
+                MARKET DATA
+            </small>
+
+        </div>
+
+    </section>
+
+
+    <!-- ERROR -->
+    <section id="errorBox"
+             class="error-box hidden">
+    </section>
+
+
+    <!-- MAIN TERMINAL -->
+    <main class="terminal-grid">
+
+
+        <!-- LEFT COLUMN -->
+        <section class="left-column">
+
+
+            <!-- CHART -->
+            <div class="panel chart-panel">
+
+                <div class="panel-header">
+
+                    <div>
+                        <span class="panel-kicker">
+                            MARKET
+                        </span>
+
+                        <h2>
+                            Price Action
+                        </h2>
+                    </div>
+
+                    <span id="candleCount"
+                          class="panel-status">
+                        —
+                    </span>
+
+                </div>
+
+
+                <div class="chart-wrapper">
+
+                    <canvas id="priceChart"></canvas>
+
+                </div>
+
+            </div>
+
+
+            <!-- ANALYSIS -->
+            <div class="panel">
+
+                <div class="panel-header">
+
+                    <div>
+                        <span class="panel-kicker">
+                            JTL INTELLIGENCE
+                        </span>
+
+                        <h2>
+                            Market Analysis
+                        </h2>
+                    </div>
+
+                    <span id="condition"
+                          class="signal-badge">
+                        WAITING
+                    </span>
+
+                </div>
+
+
+                <div class="analysis-main">
+
+                    <div class="score-box">
+
+                        <span>
+                            CONFLUENCE
+                        </span>
+
+                        <strong id="score">
+                            —
+                        </strong>
+
+                    </div>
+
+
+                    <div id="observations"
+                         class="observations">
+
+                        Waiting for market analysis...
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- INDICATORS -->
+            <div class="panel">
+
+                <div class="panel-header">
+
+                    <div>
+                        <span class="panel-kicker">
+                            TECHNICAL ENGINE
+                        </span>
+
+                        <h2>
+                            Indicators
+                        </h2>
+                    </div>
+
+                </div>
+
+
+                <div class="indicator-grid">
+
+                    <div class="indicator-card">
+                        <span>RSI</span>
+                        <strong id="rsi">—</strong>
+                        <small>Relative Strength</small>
+                    </div>
+
+                    <div class="indicator-card">
+                        <span>SMA 20</span>
+                        <strong id="sma20">—</strong>
+                        <small>Simple Moving Average</small>
+                    </div>
+
+                    <div class="indicator-card">
+                        <span>EMA 20</span>
+                        <strong id="ema20">—</strong>
+                        <small>Exponential Average</small>
+                    </div>
+
+                    <div class="indicator-card">
+                        <span>MOMENTUM</span>
+                        <strong id="momentum">—</strong>
+                        <small>Price Momentum</small>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- TREND -->
+            <div class="panel">
+
+                <div class="panel-header">
+
+                    <div>
+                        <span class="panel-kicker">
+                            MARKET STRUCTURE
+                        </span>
+
+                        <h2>
+                            Trend Analyst
+                        </h2>
+                    </div>
+
+                    <span id="trendDirection"
+                          class="signal-badge">
+                        WAITING
+                    </span>
+
+                </div>
+
+
+                <div class="trend-main">
+
+                    <div>
+
+                        <div id="trendName"
+                             class="trend-name">
+
+                            Trend analysis waiting...
+
+                        </div>
+
+                        <div class="trend-progress">
+
+                            <div id="trendProgress"></div>
+
+                        </div>
+
+                    </div>
+
+
+                    <strong id="trendStrength">
+                        0%
+                    </strong>
+
+                </div>
+
+
+                <div class="stats-grid">
+
+                    <div>
+                        <span>DIRECTION</span>
+                        <strong id="trendDirectionValue">
+                            —
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>CONFIDENCE</span>
+                        <strong id="trendConfidence">
+                            —
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>SCORE</span>
+                        <strong id="trendScore">
+                            —
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>SMA</span>
+                        <strong id="trendSma">
+                            —
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>EMA</span>
+                        <strong id="trendEma">
+                            —
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>MOMENTUM</span>
+                        <strong id="trendMomentum">
+                            —
+                        </strong>
+                    </div>
+
+                </div>
+
+
+                <div class="trend-observations">
+
+                    <ul id="trendObservations"></ul>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- RIGHT COLUMN -->
+        <aside class="right-column">
+
+
+            <!-- ACCOUNT -->
+            <div class="panel account-panel">
+
+                <div class="panel-header">
+
+                    <div>
+                        <span class="panel-kicker">
+                            MT5 ACCOUNT
+                        </span>
+
+                        <h2>
+                            Account Overview
+                        </h2>
+                    </div>
+
+                    <span id="mt5Status"
+                          class="connection-badge waiting">
+                        WAITING
+                    </span>
+
+                </div>
+
+
+                <div class="account-grid">
+
+                    <div>
+                        <span>BALANCE</span>
+                        <strong id="accountBalance">—</strong>
+                    </div>
+
+                    <div>
+                        <span>EQUITY</span>
+                        <strong id="accountEquity">—</strong>
+                    </div>
+
+                    <div>
+                        <span>FREE MARGIN</span>
+                        <strong id="freeMargin">—</strong>
+                    </div>
+
+                    <div>
+                        <span>USED MARGIN</span>
+                        <strong id="usedMargin">—</strong>
+                    </div>
+
+                    <div>
+                        <span>UNREALIZED P/L</span>
+                        <strong id="unrealizedPnl">—</strong>
+                    </div>
+
+                    <div>
+                        <span>REALIZED P/L</span>
+                        <strong id="realizedPnl">—</strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- CONNECTION CENTER -->
+            <div class="panel">
+
+                <div class="panel-header">
+
+                    <div>
+                        <span class="panel-kicker">
+                            SYSTEM
+                        </span>
+
+                        <h2>
+                            Connection Center
+                        </h2>
+                    </div>
+
+                </div>
+
+
+                <div class="connection-list">
+
+                    <div class="connection-row">
+                        <span>Twelve Data</span>
+                        <strong id="twelveStatus">
+                            CONNECTED
+                        </strong>
+                    </div>
+
+                    <div class="connection-row">
+                        <span>Flask Backend</span>
+                        <strong id="flaskStatus">
+                            CONNECTED
+                        </strong>
+                    </div>
+
+                    <div class="connection-row">
+                        <span>MT5 EA</span>
+                        <strong id="eaStatus">
+                            WAITING
+                        </strong>
+                    </div>
+
+                    <div class="connection-row">
+                        <span>TradeMux</span>
+                        <strong id="trademuxStatus">
+                            NOT CONNECTED
+                        </strong>
+                    </div>
+
+                    <div class="connection-row execution">
+                        <span>Execution</span>
+                        <strong>
+                            DISABLED
+                        </strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- TRADE LEVELS -->
+            <div class="panel">
+
+                <div class="panel-header">
+
+                    <div>
+                        <span class="panel-kicker">
+                            TECHNICAL LEVELS
+                        </span>
+
+                        <h2>
+                            Trade Levels
+                        </h2>
+                    </div>
+
+                </div>
+
+
+                <div class="levels-grid">
+
+                    <div>
+                        <span>ENTRY</span>
+                        <strong id="terminalEntry">—</strong>
+                    </div>
+
+                    <div>
+                        <span>STOP LOSS</span>
+                        <strong id="terminalStop">—</strong>
+                    </div>
+
+                    <div>
+                        <span>TP1</span>
+                        <strong id="terminalTP1">—</strong>
+                    </div>
+
+                    <div>
+                        <span>TP2</span>
+                        <strong id="terminalTP2">—</strong>
+                    </div>
+
+                    <div>
+                        <span>TP3</span>
+                        <strong id="terminalTP3">—</strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- TRADE STATE -->
+            <div class="panel">
+
+                <div class="panel-header">
+
+                    <div>
+                        <span class="panel-kicker">
+                            TRADE ENGINE
+                        </span>
+
+                        <h2>
+                            Trade State
+                        </h2>
+                    </div>
+
+                    <span id="tradeState"
+                          class="signal-badge">
+                        WAITING
+                    </span>
+
+                </div>
+
+
+                <div class="state-list">
+
+                    <div>
+                        <span>POSITION</span>
+                        <strong id="positionSymbol">—</strong>
+                    </div>
+
+                    <div>
+                        <span>DIRECTION</span>
+                        <strong id="positionDirection">—</strong>
+                    </div>
+
+                    <div>
+                        <span>ENTRY</span>
+                        <strong id="positionEntry">—</strong>
+                    </div>
+
+                    <div>
+                        <span>POSITION ID</span>
+                        <strong id="positionId">—</strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- POSITIONS -->
+            <div class="panel">
+
+                <div class="panel-header">
+
+                    <div>
+                        <span class="panel-kicker">
+                            MT5
+                        </span>
+
+                        <h2>
+                            Positions
+                        </h2>
+                    </div>
+
+                </div>
+
+                <div id="positionsContainer"
+                     class="empty-terminal">
+
+                    No synchronized MT5 positions.
+
+                </div>
+
+            </div>
+
+
+            <!-- ORDERS -->
+            <div class="panel">
+
+                <div class="panel-header">
+
+                    <div>
+                        <span class="panel-kicker">
+                            MT5
+                        </span>
+
+                        <h2>
+                            Orders
+                        </h2>
+                    </div>
+
+                </div>
+
+                <div id="ordersContainer"
+                     class="empty-terminal">
+
+                    No synchronized MT5 orders.
+
+                </div>
+
+            </div>
+
+        </aside>
+
+    </main>
+
+
+    <footer class="terminal-footer">
+
+        <span>
+            JTL ADVANCED
+        </span>
+
+        <span>
+            ANALYSIS MODE
+        </span>
+
+        <span>
+            EXECUTION DISABLED
+        </span>
+
+        <span id="terminalTimestamp">
+            —
+        </span>
+
+    </footer>
+
+</div>
+
+
+<!-- Existing analyst engine -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+<script src="{{ url_for('static', filename='js/trade_levels.js') }}"></script>
+
+<script src="{{ url_for('static', filename='js/mt5_ea_dashboard.js') }}"></script>
+
+<script src="{{ url_for('static', filename='js/full_trade_state.js') }}"></script>
+
+<!-- New unified terminal controller -->
+<script src="{{ url_for('static', filename='js/unified_terminal.js') }}"></script>
+
+</body>
+</html>

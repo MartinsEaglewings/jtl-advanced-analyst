@@ -1,0 +1,928 @@
+//+------------------------------------------------------------------+
+//| JTL ADVANCED                                                     |
+//| Professional Multi-Market MT5 Expert Advisor                    |
+//|                                                                  |
+//| This is the REAL MQL5 Expert Advisor source.                    |
+//| It is intended to run inside MetaTrader 5.                      |
+//|                                                                  |
+//| No simulated broker execution is used.                           |
+//| No fake Bid/Ask/Margin/Spread values are generated.              |
+//+------------------------------------------------------------------+
+#property strict
+#property version   "1.00"
+#property description "JTL ADVANCED Professional Multi-Market Expert Advisor"
+#property description "Decision Intelligence + Risk + Execution Framework"
+
+//==================================================================
+// MARKET PROFILE
+//==================================================================
+
+enum ENUM_JTL_MARKET_PROFILE
+{
+   JTL_PROFILE_AUTO = 0,
+   JTL_PROFILE_XAU,
+   JTL_PROFILE_FOREX,
+   JTL_PROFILE_INDEX,
+   JTL_PROFILE_CRYPTO,
+   JTL_PROFILE_CUSTOM
+};
+
+//==================================================================
+// TRADING MODE
+//==================================================================
+
+enum ENUM_JTL_TRADING_MODE
+{
+   JTL_MODE_AUTO = 0,
+   JTL_MODE_SCALPING,
+   JTL_MODE_SWING
+};
+
+//==================================================================
+// SIGNAL STATE
+//==================================================================
+
+enum ENUM_JTL_SIGNAL_STATE
+{
+   JTL_STATE_WAIT = 0,
+   JTL_STATE_SETUP,
+   JTL_STATE_VALIDATION,
+   JTL_STATE_CONFIRMATION,
+   JTL_STATE_ACTIVE,
+   JTL_STATE_TP1,
+   JTL_STATE_TP2,
+   JTL_STATE_TP3,
+   JTL_STATE_COMPLETED,
+   JTL_STATE_COOLDOWN
+};
+
+//==================================================================
+// INPUTS
+//==================================================================
+
+input group "=== JTL ADVANCED — MARKET ==="
+
+input ENUM_JTL_MARKET_PROFILE
+InpMarketProfile = JTL_PROFILE_AUTO;
+
+input ENUM_JTL_TRADING_MODE
+InpTradingMode = JTL_MODE_AUTO;
+
+input string
+InpCustomSymbol = "";
+
+input group "=== JTL ADVANCED — RISK ==="
+
+input bool
+InpAllowTrading = false;
+
+input double
+InpRiskPercent = 1.0;
+
+input double
+InpDailyRiskLimitPercent = 3.0;
+
+input int
+InpMaxPositions = 1;
+
+input int
+InpCooldownBars = 3;
+
+input group "=== JTL ADVANCED — SIGNAL ==="
+
+input int
+InpMinimumConfluenceScore = 7;
+
+input bool
+InpRequireHTFBias = true;
+
+input bool
+InpRequireBOS = true;
+
+input bool
+InpRequireRetest = false;
+
+input bool
+InpRequireLiquiditySweep = false;
+
+input bool
+InpRequireMomentumConfirmation = true;
+
+input group "=== JTL ADVANCED — TARGETS ==="
+
+input double
+InpTP1_R = 1.0;
+
+input double
+InpTP2_R = 2.0;
+
+input double
+InpTP3_R = 3.0;
+
+input group "=== JTL ADVANCED — EXECUTION ==="
+
+input int
+InpMaxSpreadPoints = 0;
+
+input int
+InpSlippagePoints = 20;
+
+input bool
+InpUseBreakEven = true;
+
+input double
+InpBreakEvenAtR = 1.0;
+
+input bool
+InpUseTrailingStop = false;
+
+input double
+InpTrailingATRMultiplier = 1.5;
+
+input bool
+InpPartialCloseTP1 = true;
+
+input double
+InpTP1ClosePercent = 33.0;
+
+input group "=== JTL ADVANCED — SESSION ==="
+
+input bool
+InpUseSessionFilter = false;
+
+input int
+InpSessionStartHour = 7;
+
+input int
+InpSessionEndHour = 20;
+
+//==================================================================
+// JTL FLASK BRIDGE
+//==================================================================
+
+input group "=== JTL ADVANCED — FLASK BRIDGE ==="
+
+input bool
+InpEnableFlaskBridge = true;
+
+input string
+InpFlaskBridgeURL = "http://127.0.0.1:5000/api/mt5/sync";
+
+input int
+InpFlaskTimeoutMs = 3000;
+
+input int
+InpFlaskHeartbeatSeconds = 5;
+
+datetime g_lastFlaskSync = 0;
+
+//==================================================================
+// GLOBAL STATE
+//==================================================================
+
+string g_symbol = "";
+ENUM_TIMEFRAMES g_timeframe = PERIOD_CURRENT;
+
+ENUM_JTL_SIGNAL_STATE g_signalState = JTL_STATE_WAIT;
+
+datetime g_lastBarTime = 0;
+datetime g_lastSignalTime = 0;
+
+int g_cooldownBarsRemaining = 0;
+
+double g_entryPrice = 0.0;
+double g_stopLoss = 0.0;
+double g_tp1 = 0.0;
+double g_tp2 = 0.0;
+double g_tp3 = 0.0;
+
+double g_confluenceScore = 0.0;
+
+bool g_htfBullish = false;
+bool g_htfBearish = false;
+
+bool g_bosBullish = false;
+bool g_bosBearish = false;
+
+bool g_liquiditySweepBullish = false;
+bool g_liquiditySweepBearish = false;
+
+bool g_orderBlockBullish = false;
+bool g_orderBlockBearish = false;
+
+bool g_retestConfirmed = false;
+bool g_momentumConfirmed = false;
+
+//==================================================================
+// FLASK BRIDGE — REAL MT5 ACCOUNT SYNCHRONIZATION
+//==================================================================
+
+void SyncMT5WithFlask()
+{
+   if(!InpEnableFlaskBridge)
+      return;
+
+   datetime now = TimeCurrent();
+
+   if(g_lastFlaskSync != 0 &&
+      (now - g_lastFlaskSync) < InpFlaskHeartbeatSeconds)
+      return;
+
+   g_lastFlaskSync = now;
+
+   if(!TerminalInfoInteger(TERMINAL_CONNECTED))
+      return;
+
+   double balance =
+      AccountInfoDouble(ACCOUNT_BALANCE);
+
+   double equity =
+      AccountInfoDouble(ACCOUNT_EQUITY);
+
+   double freeMargin =
+      AccountInfoDouble(ACCOUNT_MARGIN_FREE);
+
+   double usedMargin =
+      AccountInfoDouble(ACCOUNT_MARGIN);
+
+   bool tradingAllowed =
+      (MQLInfoInteger(MQL_TRADE_ALLOWED) &&
+       AccountInfoInteger(ACCOUNT_TRADE_ALLOWED));
+
+   string json =
+      "{"
+      "\"account\":{"
+      "\"balance\":" + DoubleToString(balance, 2) + ","
+      "\"equity\":" + DoubleToString(equity, 2) + ","
+      "\"free_margin\":" + DoubleToString(freeMargin, 2) + ","
+      "\"used_margin\":" + DoubleToString(usedMargin, 2)
+      "},"
+      "\"broker\":{"
+      "\"connected\":true,"
+      "\"confirmed\":true,"
+      "\"execution_enabled\":" +
+         (tradingAllowed ? "true" : "false")
+      "},"
+      "\"position\":{}"
+      "}";
+
+   char post[];
+   char result[];
+   string headers = "Content-Type: application/json\r\n";
+   string resultHeaders;
+
+   StringToCharArray(
+      json,
+      post,
+      0,
+      StringLen(json)
+   );
+
+   ResetLastError();
+
+   int responseCode =
+      WebRequest(
+         "POST",
+         InpFlaskBridgeURL,
+         headers,
+         InpFlaskTimeoutMs,
+         post,
+         result,
+         resultHeaders
+      );
+
+   if(responseCode == -1)
+   {
+      Print(
+         "JTL FLASK BRIDGE ERROR: ",
+         GetLastError()
+      );
+
+      return;
+   }
+
+   Print(
+      "JTL FLASK BRIDGE: HTTP ",
+      responseCode
+   );
+}
+
+//==================================================================
+
+//==================================================================
+// INITIALIZATION
+//==================================================================
+
+int OnInit()
+{
+   g_symbol = InpCustomSymbol;
+
+   if(g_symbol == "")
+      g_symbol = _Symbol;
+
+   g_timeframe = (ENUM_TIMEFRAMES)_Period;
+
+   Print("==================================================");
+   Print("JTL ADVANCED EA INITIALIZING");
+   Print("Symbol: ", g_symbol);
+   Print("Timeframe: ", EnumToString(g_timeframe));
+   Print("Trading enabled: ", InpAllowTrading);
+   Print("==================================================");
+
+   ResetSignalState();
+
+   return(INIT_SUCCEEDED);
+}
+
+//==================================================================
+// DEINITIALIZATION
+//==================================================================
+
+void OnDeinit(const int reason)
+{
+   Print("JTL ADVANCED EA stopped. Reason: ", reason);
+}
+
+//==================================================================
+// MAIN TICK
+//==================================================================
+
+void OnTick()
+{
+   UpdateMarketState();
+
+   SyncMT5WithFlask();
+
+   ManageExistingPositions();
+
+   if(!IsNewBar())
+      return;
+
+   UpdateCooldown();
+
+   EvaluateStrategy();
+}
+
+//==================================================================
+// MARKET STATE
+//==================================================================
+
+void UpdateMarketState()
+{
+   MqlTick tick;
+
+   if(!SymbolInfoTick(g_symbol, tick))
+   {
+      Print("JTL ERROR: Unable to obtain real broker tick.");
+      return;
+   }
+
+   // Real broker values only.
+   double bid = tick.bid;
+   double ask = tick.ask;
+
+   if(bid <= 0 || ask <= 0)
+      return;
+
+   // These values come directly from MT5.
+   // No Twelve Data substitution is used here.
+}
+
+//==================================================================
+// NEW BAR DETECTION
+//==================================================================
+
+bool IsNewBar()
+{
+   datetime currentBar =
+      iTime(g_symbol, g_timeframe, 0);
+
+   if(currentBar == 0)
+      return false;
+
+   if(currentBar != g_lastBarTime)
+   {
+      g_lastBarTime = currentBar;
+      return true;
+   }
+
+   return false;
+}
+
+//==================================================================
+// STRATEGY PIPELINE
+//==================================================================
+
+void EvaluateStrategy()
+{
+   if(g_cooldownBarsRemaining > 0)
+      return;
+
+   if(!ExecutionEnvironmentValid())
+   {
+      SetSignalState(JTL_STATE_WAIT);
+      return;
+   }
+
+   if(!RiskEnvironmentValid())
+   {
+      SetSignalState(JTL_STATE_WAIT);
+      return;
+   }
+
+   AnalyzeHTFBias();
+
+   AnalyzeTrend();
+
+   AnalyzeMomentum();
+
+   AnalyzeMarketStructure();
+
+   AnalyzeLiquidity();
+
+   AnalyzeLiquiditySweep();
+
+   AnalyzeOrderBlock();
+
+   AnalyzeSupportResistance();
+
+   AnalyzeBreakoutRetest();
+
+   CalculateConfluence();
+
+   ProcessSignalState();
+
+   if(InpAllowTrading)
+      ExecuteConfirmedSignal();
+}
+
+//==================================================================
+// HTF BIAS
+//==================================================================
+
+void AnalyzeHTFBias()
+{
+   g_htfBullish = false;
+   g_htfBearish = false;
+
+   ENUM_TIMEFRAMES htf =
+      GetHigherTimeframe(g_timeframe);
+
+   double ema21 =
+      iMA(g_symbol, htf, 21, 0, MODE_EMA, PRICE_CLOSE);
+
+   double ema50 =
+      iMA(g_symbol, htf, 50, 0, MODE_EMA, PRICE_CLOSE);
+
+   double closePrice =
+      iClose(g_symbol, htf, 1);
+
+   if(ema21 == 0 || ema50 == 0 || closePrice == 0)
+      return;
+
+   if(closePrice > ema21 && ema21 > ema50)
+      g_htfBullish = true;
+
+   if(closePrice < ema21 && ema21 < ema50)
+      g_htfBearish = true;
+}
+
+//==================================================================
+// TREND
+//==================================================================
+
+void AnalyzeTrend()
+{
+   // Trend engine foundation.
+   // EMA and Supertrend modules will be expanded here.
+}
+
+//==================================================================
+// MOMENTUM
+//==================================================================
+
+void AnalyzeMomentum()
+{
+   g_momentumConfirmed = false;
+
+   int rsiHandle =
+      iRSI(
+         g_symbol,
+         g_timeframe,
+         14,
+         PRICE_CLOSE
+      );
+
+   if(rsiHandle == INVALID_HANDLE)
+      return;
+
+   double rsiBuffer[];
+
+   ArraySetAsSeries(rsiBuffer, true);
+
+   if(CopyBuffer(
+      rsiHandle,
+      0,
+      1,
+      1,
+      rsiBuffer
+   ) != 1)
+   {
+      IndicatorRelease(rsiHandle);
+      return;
+   }
+
+   double rsi = rsiBuffer[0];
+
+   // RSI is used as momentum information.
+   // It is not automatically treated as overbought/oversold.
+   if(rsi > 50.0 || rsi < 50.0)
+      g_momentumConfirmed = true;
+
+   IndicatorRelease(rsiHandle);
+}
+
+//==================================================================
+// MARKET STRUCTURE
+//==================================================================
+
+void AnalyzeMarketStructure()
+{
+   g_bosBullish = false;
+   g_bosBearish = false;
+
+   // Dedicated BOS / CHoCH engine will be added here.
+}
+
+//==================================================================
+// LIQUIDITY
+//==================================================================
+
+void AnalyzeLiquidity()
+{
+   // Swing highs/lows
+   // Equal highs/lows
+   // Previous day high/low
+   // Session liquidity
+}
+
+//==================================================================
+// LIQUIDITY SWEEP
+//==================================================================
+
+void AnalyzeLiquiditySweep()
+{
+   g_liquiditySweepBullish = false;
+   g_liquiditySweepBearish = false;
+
+   // Real OHLC-based sweep detection will be implemented here.
+}
+
+//==================================================================
+// ORDER BLOCK
+//==================================================================
+
+void AnalyzeOrderBlock()
+{
+   g_orderBlockBullish = false;
+   g_orderBlockBearish = false;
+
+   // Order-block detection engine will be implemented here.
+}
+
+//==================================================================
+// SUPPORT / RESISTANCE
+//==================================================================
+
+void AnalyzeSupportResistance()
+{
+   // Dynamic technical zones.
+}
+
+//==================================================================
+// BREAKOUT / RETEST
+//==================================================================
+
+void AnalyzeBreakoutRetest()
+{
+   g_retestConfirmed = false;
+
+   // Breakout and retest confirmation engine.
+}
+
+//==================================================================
+// CONFLUENCE
+//==================================================================
+
+void CalculateConfluence()
+{
+   g_confluenceScore = 0.0;
+
+   if(g_htfBullish || g_htfBearish)
+      g_confluenceScore += 2.0;
+
+   if(g_momentumConfirmed)
+      g_confluenceScore += 1.0;
+
+   if(g_bosBullish || g_bosBearish)
+      g_confluenceScore += 2.0;
+
+   if(g_liquiditySweepBullish ||
+      g_liquiditySweepBearish)
+      g_confluenceScore += 1.0;
+
+   if(g_orderBlockBullish ||
+      g_orderBlockBearish)
+      g_confluenceScore += 1.0;
+
+   if(g_retestConfirmed)
+      g_confluenceScore += 1.0;
+}
+
+//==================================================================
+// SIGNAL STATE MACHINE
+//==================================================================
+
+void ProcessSignalState()
+{
+   switch(g_signalState)
+   {
+      case JTL_STATE_WAIT:
+
+         if(g_confluenceScore >= 3.0)
+            SetSignalState(JTL_STATE_SETUP);
+
+         break;
+
+      case JTL_STATE_SETUP:
+
+         if(g_confluenceScore >= 5.0)
+            SetSignalState(JTL_STATE_VALIDATION);
+
+         break;
+
+      case JTL_STATE_VALIDATION:
+
+         if(g_confluenceScore >=
+            InpMinimumConfluenceScore)
+         {
+            SetSignalState(
+               JTL_STATE_CONFIRMATION
+            );
+         }
+
+         break;
+
+      case JTL_STATE_CONFIRMATION:
+
+         if(IsSignalConfirmed())
+            SetSignalState(
+               JTL_STATE_ACTIVE
+            );
+
+         break;
+
+      default:
+         break;
+   }
+}
+
+//==================================================================
+// SIGNAL CONFIRMATION
+//==================================================================
+
+bool IsSignalConfirmed()
+{
+   if(InpRequireHTFBias &&
+      !g_htfBullish &&
+      !g_htfBearish)
+      return false;
+
+   if(InpRequireBOS &&
+      !g_bosBullish &&
+      !g_bosBearish)
+      return false;
+
+   if(InpRequireLiquiditySweep &&
+      !g_liquiditySweepBullish &&
+      !g_liquiditySweepBearish)
+      return false;
+
+   if(InpRequireRetest &&
+      !g_retestConfirmed)
+      return false;
+
+   if(InpRequireMomentumConfirmation &&
+      !g_momentumConfirmed)
+      return false;
+
+   return true;
+}
+
+//==================================================================
+// EXECUTION
+//==================================================================
+
+void ExecuteConfirmedSignal()
+{
+   if(g_signalState != JTL_STATE_ACTIVE)
+      return;
+
+   if(!ExecutionEnvironmentValid())
+      return;
+
+   if(CountOpenPositions() >= InpMaxPositions)
+      return;
+
+   // Actual order execution will only be enabled
+   // after complete entry/SL/TP/risk validation.
+   //
+   // This prevents the EA from placing incomplete trades
+   // while development is in progress.
+}
+
+//==================================================================
+// POSITION MANAGEMENT
+//==================================================================
+
+void ManageExistingPositions()
+{
+   // TP1 partial close
+   // TP2 management
+   // TP3 completion
+   // break-even
+   // trailing stop
+   // invalidation
+   // position lifecycle
+}
+
+//==================================================================
+// EXECUTION ENVIRONMENT
+//==================================================================
+
+bool ExecutionEnvironmentValid()
+{
+   if(!TerminalInfoInteger(TERMINAL_CONNECTED))
+      return false;
+
+   if(!MQLInfoInteger(MQL_TRADE_ALLOWED))
+      return false;
+
+   if(!AccountInfoInteger(ACCOUNT_TRADE_ALLOWED))
+      return false;
+
+   if(!SymbolInfoInteger(
+      g_symbol,
+      SYMBOL_TRADE_MODE))
+      return false;
+
+   return true;
+}
+
+//==================================================================
+// RISK ENVIRONMENT
+//==================================================================
+
+bool RiskEnvironmentValid()
+{
+   if(InpRiskPercent <= 0)
+      return false;
+
+   if(InpDailyRiskLimitPercent <= 0)
+      return false;
+
+   return true;
+}
+
+//==================================================================
+// POSITION COUNT
+//==================================================================
+
+int CountOpenPositions()
+{
+   int count = 0;
+
+   for(int i = 0; i < PositionsTotal(); i++)
+   {
+      ulong ticket =
+         PositionGetTicket(i);
+
+      if(ticket == 0)
+         continue;
+
+      if(PositionGetString(
+         POSITION_SYMBOL
+      ) == g_symbol)
+      {
+         count++;
+      }
+   }
+
+   return count;
+}
+
+//==================================================================
+// HIGHER TIMEFRAME
+//==================================================================
+
+ENUM_TIMEFRAMES GetHigherTimeframe(
+   ENUM_TIMEFRAMES timeframe
+)
+{
+   switch(timeframe)
+   {
+      case PERIOD_M1:
+         return PERIOD_M15;
+
+      case PERIOD_M5:
+         return PERIOD_H1;
+
+      case PERIOD_M15:
+         return PERIOD_H1;
+
+      case PERIOD_M30:
+         return PERIOD_H4;
+
+      case PERIOD_H1:
+         return PERIOD_H4;
+
+      case PERIOD_H4:
+         return PERIOD_D1;
+
+      case PERIOD_D1:
+         return PERIOD_W1;
+
+      default:
+         return PERIOD_H4;
+   }
+}
+
+//==================================================================
+// SIGNAL STATE
+//==================================================================
+
+void SetSignalState(
+   ENUM_JTL_SIGNAL_STATE state
+)
+{
+   if(g_signalState == state)
+      return;
+
+   Print(
+      "JTL STATE: ",
+      EnumToString(g_signalState),
+      " -> ",
+      EnumToString(state)
+   );
+
+   g_signalState = state;
+}
+
+//==================================================================
+// COOLDOWN
+//==================================================================
+
+void UpdateCooldown()
+{
+   if(g_cooldownBarsRemaining > 0)
+      g_cooldownBarsRemaining--;
+}
+
+//==================================================================
+// RESET
+//==================================================================
+
+void ResetSignalState()
+{
+   g_signalState = JTL_STATE_WAIT;
+
+   g_lastSignalTime = 0;
+
+   g_cooldownBarsRemaining = 0;
+
+   g_entryPrice = 0.0;
+   g_stopLoss = 0.0;
+
+   g_tp1 = 0.0;
+   g_tp2 = 0.0;
+   g_tp3 = 0.0;
+
+   g_confluenceScore = 0.0;
+
+   g_htfBullish = false;
+   g_htfBearish = false;
+
+   g_bosBullish = false;
+   g_bosBearish = false;
+
+   g_liquiditySweepBullish = false;
+   g_liquiditySweepBearish = false;
+
+   g_orderBlockBullish = false;
+   g_orderBlockBearish = false;
+
+   g_retestConfirmed = false;
+   g_momentumConfirmed = false;
+}
+
+//+------------------------------------------------------------------+

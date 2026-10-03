@@ -1,0 +1,6 @@
+.twelve_data_key
+__pycache__/
+*.pyc
+.venv/
+.metaapi_token
+.trademux_api_key

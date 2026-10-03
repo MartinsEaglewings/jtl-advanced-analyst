@@ -1,0 +1,386 @@
+/* =========================================
+   JTL ADVANCED — MT5 EA DASHBOARD
+   Isolated frontend module
+   ========================================= */
+
+(function () {
+
+    if (window.JTL_MT5_EA_LOADED) {
+        return;
+    }
+
+    window.JTL_MT5_EA_LOADED = true;
+
+    const css = document.createElement("link");
+    css.rel = "stylesheet";
+    css.href = "/static/css/mt5_ea_dashboard.css";
+    document.head.appendChild(css);
+
+    const button = document.createElement("button");
+
+    button.className = "jtl-mt5-launch";
+    button.type = "button";
+    button.textContent = "JTL ADVANCED MT5 EA";
+
+    const existingTradeLevels =
+        document.querySelector(".jtl-trade-levels-launch") ||
+        document.querySelector("#tradeLevelsButton");
+
+    if (existingTradeLevels) {
+        existingTradeLevels.insertAdjacentElement("afterend", button);
+    } else {
+        document.body.appendChild(button);
+    }
+
+    const overlay = document.createElement("div");
+
+    overlay.className = "jtl-mt5-overlay";
+
+    overlay.innerHTML = `
+        <div class="jtl-mt5-dashboard">
+
+            <div class="jtl-mt5-header">
+
+                <div>
+                    <h2 class="jtl-mt5-title">
+                        JTL ADVANCED MT5 EA
+                    </h2>
+
+                    <p class="jtl-mt5-subtitle">
+                        Multi-market Expert Advisor control dashboard
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    class="jtl-mt5-exit"
+                    id="jtlMt5Exit"
+                    aria-label="Exit MT5 EA dashboard"
+                >
+                    ×
+                </button>
+
+            </div>
+
+            <div class="jtl-mt5-status">
+
+                <span class="jtl-mt5-badge">
+                    EA ENGINE: STANDBY
+                </span>
+
+                <span class="jtl-mt5-badge">
+                    MT5 BRIDGE: NOT CONNECTED
+                </span>
+
+                <span class="jtl-mt5-badge">
+                    EXECUTION: DISABLED
+                </span>
+
+            </div>
+
+
+            <div class="jtl-mt5-grid">
+
+                <section class="jtl-mt5-card">
+
+                    <h3>MARKET CONFIGURATION</h3>
+
+                    <div class="jtl-mt5-row">
+                        <span>Mode</span>
+                        <span class="jtl-mt5-value">AUTO</span>
+                    </div>
+
+                    <div class="jtl-mt5-row">
+                        <span>Market Profile</span>
+                        <span class="jtl-mt5-value">AUTO</span>
+                    </div>
+
+                    <div class="jtl-mt5-row">
+                        <span>Symbol</span>
+                        <span class="jtl-mt5-value">XAUUSD</span>
+                    </div>
+
+                    <div class="jtl-mt5-row">
+                        <span>Timeframe</span>
+                        <span class="jtl-mt5-value">M5</span>
+                    </div>
+
+                </section>
+
+
+                <section class="jtl-mt5-card">
+
+                    <h3>SIGNAL ENGINE</h3>
+
+                    <div class="jtl-mt5-row">
+                        <span>Status</span>
+                        <span class="jtl-mt5-value">
+                            WAIT
+                        </span>
+                    </div>
+
+                    <div class="jtl-mt5-row">
+                        <span>Buy Score</span>
+                        <span class="jtl-mt5-value">— / —</span>
+                    </div>
+
+                    <div class="jtl-mt5-row">
+                        <span>Sell Score</span>
+                        <span class="jtl-mt5-value">— / —</span>
+                    </div>
+
+                    <div class="jtl-mt5-row">
+                        <span>HTF Bias</span>
+                        <span class="jtl-mt5-value">—</span>
+                    </div>
+
+                </section>
+
+
+                <section class="jtl-mt5-card">
+
+                    <h3>MARKET ANALYSIS</h3>
+
+                    <div class="jtl-mt5-row">
+                        <span>Trend</span>
+                        <span class="jtl-mt5-value">—</span>
+                    </div>
+
+                    <div class="jtl-mt5-row">
+                        <span>Structure</span>
+                        <span class="jtl-mt5-value">—</span>
+                    </div>
+
+                    <div class="jtl-mt5-row">
+                        <span>Liquidity</span>
+                        <span class="jtl-mt5-value">—</span>
+                    </div>
+
+                    <div class="jtl-mt5-row">
+                        <span>Order Block</span>
+                        <span class="jtl-mt5-value">—</span>
+                    </div>
+
+                    <div class="jtl-mt5-row">
+                        <span>Breakout</span>
+                        <span class="jtl-mt5-value">—</span>
+                    </div>
+
+                </section>
+
+
+                <section class="jtl-mt5-card">
+
+                    <h3>VOLATILITY & MOMENTUM</h3>
+
+                    <div class="jtl-mt5-row">
+                        <span>RSI</span>
+                        <span class="jtl-mt5-value">—</span>
+                    </div>
+
+                    <div class="jtl-mt5-row">
+                        <span>Momentum</span>
+                        <span class="jtl-mt5-value">—</span>
+                    </div>
+
+                    <div class="jtl-mt5-row">
+                        <span>Volatility</span>
+                        <span class="jtl-mt5-value">—</span>
+                    </div>
+
+                    <div class="jtl-mt5-row">
+                        <span>Volume</span>
+                        <span class="jtl-mt5-value">—</span>
+                    </div>
+
+                </section>
+
+
+                <section class="jtl-mt5-card full">
+
+                    <h3>EXECUTION CHECKS</h3>
+
+                    <div class="jtl-mt5-check">
+                        <span>SIGNAL</span>
+                        <span class="jtl-mt5-waiting">—</span>
+                    </div>
+
+                    <div class="jtl-mt5-check">
+                        <span>SCORE</span>
+                        <span class="jtl-mt5-waiting">—</span>
+                    </div>
+
+                    <div class="jtl-mt5-check">
+                        <span>STRUCTURE</span>
+                        <span class="jtl-mt5-waiting">—</span>
+                    </div>
+
+                    <div class="jtl-mt5-check">
+                        <span>TREND</span>
+                        <span class="jtl-mt5-waiting">—</span>
+                    </div>
+
+                    <div class="jtl-mt5-check">
+                        <span>VOLATILITY</span>
+                        <span class="jtl-mt5-waiting">—</span>
+                    </div>
+
+                    <div class="jtl-mt5-check">
+                        <span>CONFIRMATION</span>
+                        <span class="jtl-mt5-waiting">—</span>
+                    </div>
+
+                    <div class="jtl-mt5-check">
+                        <span>SPREAD</span>
+                        <span class="jtl-mt5-waiting">—</span>
+                    </div>
+
+                    <div class="jtl-mt5-check">
+                        <span>COOLDOWN</span>
+                        <span class="jtl-mt5-waiting">—</span>
+                    </div>
+
+                    <div class="jtl-mt5-check">
+                        <span>MARGIN</span>
+                        <span class="jtl-mt5-waiting">—</span>
+                    </div>
+
+                    <div class="jtl-mt5-check">
+                        <span>POSITION LIMIT</span>
+                        <span class="jtl-mt5-waiting">—</span>
+                    </div>
+
+                </section>
+
+
+                <section class="jtl-mt5-card">
+
+                    <h3>TRADE STATE</h3>
+
+                    <div class="jtl-mt5-row">
+                        <span>State</span>
+                        <span class="jtl-mt5-value">
+                            WAIT
+                        </span>
+                    </div>
+
+                    <div class="jtl-mt5-row">
+                        <span>Entry</span>
+                        <span class="jtl-mt5-value">—</span>
+                    </div>
+
+                    <div class="jtl-mt5-row">
+                        <span>SL</span>
+                        <span class="jtl-mt5-value">—</span>
+                    </div>
+
+                    <div class="jtl-mt5-row">
+                        <span>TP1 / TP2 / TP3</span>
+                        <span class="jtl-mt5-value">— / — / —</span>
+                    </div>
+
+                </section>
+
+
+                <section class="jtl-mt5-card">
+
+                    <h3>PERFORMANCE</h3>
+
+                    <div class="jtl-mt5-row">
+                        <span>Total Trades</span>
+                        <span class="jtl-mt5-value">0</span>
+                    </div>
+
+                    <div class="jtl-mt5-row">
+                        <span>Winning Trades</span>
+                        <span class="jtl-mt5-value">0</span>
+                    </div>
+
+                    <div class="jtl-mt5-row">
+                        <span>Losing Trades</span>
+                        <span class="jtl-mt5-value">0</span>
+                    </div>
+
+                    <div class="jtl-mt5-row">
+                        <span>Maximum Drawdown</span>
+                        <span class="jtl-mt5-value">—</span>
+                    </div>
+
+                </section>
+
+            </div>
+
+
+            <div class="jtl-mt5-warning">
+                The MT5 execution bridge is not connected yet.
+                This dashboard does not place real orders and does not
+                simulate successful execution. The actual MQL5 Expert
+                Advisor and broker connection will be added separately.
+            </div>
+
+
+            <div class="jtl-mt5-controls">
+
+                <button
+                    type="button"
+                    class="jtl-mt5-control"
+                    disabled
+                >
+                    CONNECT MT5
+                </button>
+
+                <button
+                    type="button"
+                    class="jtl-mt5-control"
+                    disabled
+                >
+                    ARM EA
+                </button>
+
+                <button
+                    type="button"
+                    class="jtl-mt5-control"
+                    id="jtlMt5ExitBottom"
+                >
+                    EXIT DASHBOARD
+                </button>
+
+            </div>
+
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+
+    function openDashboard() {
+        overlay.classList.add("active");
+        document.body.style.overflow = "hidden";
+    }
+
+
+    function closeDashboard() {
+        overlay.classList.remove("active");
+        document.body.style.overflow = "";
+    }
+
+
+    button.addEventListener("click", openDashboard);
+
+    document
+        .getElementById("jtlMt5Exit")
+        .addEventListener("click", closeDashboard);
+
+    document
+        .getElementById("jtlMt5ExitBottom")
+        .addEventListener("click", closeDashboard);
+
+    overlay.addEventListener("click", function (event) {
+
+        if (event.target === overlay) {
+            closeDashboard();
+        }
+
+    });
+
+})();

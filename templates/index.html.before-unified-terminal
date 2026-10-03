@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>JTL ADVANCED ANALYST</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+
+</head>
+
+<body>
+
+<div class="app-shell">
+
+<header class="topbar">
+
+    <div>
+
+        <div class="brand">
+            JTL ADVANCED
+        </div>
+
+        <div class="brand-subtitle">
+            INDICATOR ANALYST
+        </div>
+
+    </div>
+
+    <div class="connection">
+
+        <span id="connectionDot"></span>
+
+        <span id="connectionText">
+            LOADING MARKET DATA
+        </span>
+
+    </div>
+
+</header>
+
+
+<main class="dashboard">
+
+<section class="hero">
+
+    <p class="eyebrow">
+        DECISION INTELLIGENCE
+    </p>
+
+    <h1>
+        Market Indicator
+        <span>Analyst</span>
+    </h1>
+
+    <p class="hero-text">
+        Real cryptocurrency market data,
+        technical indicators and structured
+        analytical signals powered by Twelve Data.
+    </p>
+
+</section>
+
+
+<section class="control-panel">
+
+
+    <div class="field">
+
+        <label>
+            CRYPTOCURRENCY
+        </label>
+
+        <select id="cryptoSelect">
+
+            <option value="">
+                Loading available coins...
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <div class="field">
+
+        <label>
+            TIMEFRAME
+        </label>
+
+        <select id="interval">
+
+            <option value="1min">
+                1 Minute
+            </option>
+
+            <option value="5min">
+                5 Minutes
+            </option>
+
+            <option value="15min">
+                15 Minutes
+            </option>
+
+            <option value="30min">
+                30 Minutes
+            </option>
+
+            <option value="1h">
+                1 Hour
+            </option>
+
+            <option value="2h">
+                2 Hours
+            </option>
+
+            <option value="4h">
+                4 Hours
+            </option>
+
+            <option value="8h">
+                8 Hours
+            </option>
+
+            <option value="1day" selected>
+                1 Day
+            </option>
+
+            <option value="1week">
+                1 Week
+            </option>
+
+            <option value="1month">
+                1 Month
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <button id="analyzeButton">
+        ANALYZE MARKET
+    </button>
+
+</section>
+
+
+<section id="errorBox"
+         class="error-box hidden">
+</section>
+
+
+<section class="market-header">
+
+    <div>
+
+        <div
+            class="market-symbol"
+            id="marketSymbol"
+        >
+            BTC/USD
+        </div>
+
+        <div
+            class="market-meta"
+            id="marketMeta"
+        >
+            Cryptocurrency • USD
+        </div>
+
+    </div>
+
+
+    <div class="price-block">
+
+        <div
+            class="price"
+            id="currentPrice"
+        >
+            —
+        </div>
+
+        <div class="price-label">
+            CURRENT MARKET PRICE
+        </div>
+
+    </div>
+
+</section>
+
+
+<section class="analysis-card">
+
+    <div class="analysis-heading">
+
+        <div>
+
+            <p class="section-label">
+                ANALYST STATUS
+            </p>
+
+            <h2 id="condition">
+                WAITING
+            </h2>
+
+        </div>
+
+
+        <div class="score-container">
+
+            <div
+                class="score"
+                id="score"
+            >
+                —
+            </div>
+
+            <span>SCORE</span>
+
+        </div>
+
+    </div>
+
+
+    <div
+        class="observations"
+        id="observations"
+    >
+
+        <div class="empty-state">
+            Select a cryptocurrency and run
+            an analysis.
+        </div>
+
+    </div>
+
+</section>
+
+
+<section class="indicator-grid">
+
+
+    <div class="indicator-card">
+
+        <div class="indicator-title">
+            RSI
+        </div>
+
+        <div
+            class="indicator-value"
+            id="rsi"
+        >
+            —
+        </div>
+
+        <div class="indicator-description">
+            Relative Strength Index
+        </div>
+
+    </div>
+
+
+    <div class="indicator-card">
+
+        <div class="indicator-title">
+            SMA 20
+        </div>
+
+        <div
+            class="indicator-value"
+            id="sma20"
+        >
+            —
+        </div>
+
+        <div class="indicator-description">
+            Simple Moving Average
+        </div>
+
+    </div>
+
+
+    <div class="indicator-card">
+
+        <div class="indicator-title">
+            EMA 20
+        </div>
+
+        <div
+            class="indicator-value"
+            id="ema20"
+        >
+            —
+        </div>
+
+        <div class="indicator-description">
+            Exponential Moving Average
+        </div>
+
+    </div>
+
+
+    <div class="indicator-card">
+
+        <div class="indicator-title">
+            MOMENTUM
+        </div>
+
+        <div
+            class="indicator-value"
+            id="momentum"
+        >
+            —
+        </div>
+
+        <div class="indicator-description">
+            10-period momentum
+        </div>
+
+    </div>
+
+
+</section>
+
+
+
+<section class="analysis-card trend-analyst-card" id="trendAnalyst">
+    <div class="section-heading">
+        <div>
+            <span class="section-kicker">MARKET STRUCTURE</span>
+            <h2>Trend Analyst</h2>
+        </div>
+        <span class="trend-badge" id="trendDirection">WAITING</span>
+    </div>
+
+    <div class="trend-main">
+        <div class="trend-title" id="trendName">Trend analysis waiting...</div>
+
+        <div class="trend-strength">
+            <div class="trend-strength-header">
+                <span>Trend Strength</span>
+                <strong id="trendStrength">0%</strong>
+            </div>
+            <div class="trend-progress">
+                <div id="trendProgress"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="trend-stats">
+        <div>
+            <span>Direction</span>
+            <strong id="trendDirectionValue">—</strong>
+        </div>
+
+        <div>
+            <span>Confidence</span>
+            <strong id="trendConfidence">—</strong>
+        </div>
+
+        <div>
+            <span>Score</span>
+            <strong id="trendScore">—</strong>
+        </div>
+    </div>
+
+    <div class="trend-values">
+        <div>
+            <span>SMA20</span>
+            <strong id="trendSma">—</strong>
+        </div>
+
+        <div>
+            <span>EMA20</span>
+            <strong id="trendEma">—</strong>
+        </div>
+
+        <div>
+            <span>Momentum10</span>
+            <strong id="trendMomentum">—</strong>
+        </div>
+    </div>
+
+    <div class="trend-observations">
+        <h3>Trend Observations</h3>
+        <ul id="trendObservations">
+            <li>Waiting for market analysis...</li>
+        </ul>
+    </div>
+</section>
+
+
+<section class="chart-card">
+
+    <div class="chart-header">
+
+        <div>
+
+            <p class="section-label">
+                MARKET DATA
+            </p>
+
+            <h2>
+                Price History
+            </h2>
+
+        </div>
+
+        <div id="candleCount">
+            0 candles
+        </div>
+
+    </div>
+
+
+    <div class="chart-wrapper">
+
+        <canvas id="priceChart"></canvas>
+
+    </div>
+
+</section>
+
+
+<footer>
+
+    <span>
+        JTL ADVANCED ANALYST
+    </span>
+
+    <span>
+        Market information & technical analysis
+    </span>
+
+</footer>
+
+</main>
+
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script
+    src="{{ url_for('static', filename='js/script.js') }}"
+></script>
+
+<div style="width:100%;display:flex;justify-content:center;margin:14px 0;">
+    <button
+        type="button"
+        class="jtl-fts-launch"
+        onclick="window.openFullTradeState && window.openFullTradeState()">
+        ◈ FULL TRADE STATE
+    </button>
+</div>
+
+<script src="/static/js/trade_levels.js"></script>
+<script src="/static/js/mt5_ea_dashboard.js?v=4"></script>
+<script src="/static/js/full_trade_state.js?v=4"></script>
+
+
+
+</body>
+
+</html>

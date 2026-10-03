@@ -1,0 +1,738 @@
+from flask import Flask, jsonify, render_template, request
+
+from market_data import (
+    get_crypto_list,
+    fetch_market_data
+)
+
+from indicators import calculate_indicators
+from analyst import analyze
+from trend_analyst import analyze_trend
+from htf_bias import analyze_htf_bias
+from trade_levels import calculate_trade_levels
+from trading_intelligence import build_trading_intelligence
+from full_trade_state import create_trade_state, dashboard_state
+from terminal_state import build_terminal_state
+
+
+app = Flask(__name__)
+
+FULL_TRADE_STATE = create_trade_state()
+
+
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+
+@app.route("/api/cryptos")
+def cryptos():
+
+    try:
+
+        coins = get_crypto_list()
+
+        return jsonify({
+            "success": True,
+            "count": len(coins),
+            "cryptos": coins
+        })
+
+    except Exception as error:
+
+        return jsonify({
+            "success": False,
+            "error": str(error)
+        }), 400
+
+
+@app.route("/api/analyze")
+def api_analyze():
+
+    symbol = request.args.get(
+        "symbol",
+        "BTC/USD"
+    ).strip().upper()
+
+    interval = request.args.get(
+        "interval",
+        "1min"
+    ).strip()
+
+    allowed_intervals = {
+        "1min",
+        "5min",
+        "15min",
+        "30min",
+        "45min",
+        "1h",
+        "2h",
+        "4h",
+        "8h",
+        "1day",
+        "1week",
+        "1month"
+    }
+
+    if interval not in allowed_intervals:
+
+        return jsonify({
+            "success": False,
+            "error": "Unsupported timeframe."
+        }), 400
+
+    try:
+
+        market = fetch_market_data(
+            symbol=symbol,
+            interval=interval,
+            outputsize=100
+        )
+
+        indicators = calculate_indicators(
+            market["candles"]
+        )
+
+        analysis = analyze(indicators)
+
+        trend = analyze_trend(
+            market["candles"]
+        )
+
+        return jsonify({
+
+            "success": True,
+
+            "market": market,
+
+            "current_price":
+                market["current_price"],
+
+            "indicators": indicators,
+
+            "analysis": analysis,
+
+            "trend": trend
+
+        })
+
+    except Exception as error:
+
+        return jsonify({
+            "success": False,
+            "error": str(error)
+        }), 400
+
+
+@app.route("/api/trade-levels")
+def api_trade_levels():
+
+    symbol = request.args.get(
+        "symbol",
+        "BTC/USD"
+    ).strip().upper()
+
+    interval = request.args.get(
+        "interval",
+        "1min"
+    ).strip()
+
+    allowed_intervals = {
+        "1min",
+        "5min",
+        "15min",
+        "30min",
+        "45min",
+        "1h",
+        "2h",
+        "4h",
+        "8h",
+        "1day",
+        "1week",
+        "1month"
+    }
+
+    if interval not in allowed_intervals:
+
+        return jsonify({
+            "success": False,
+            "error": "Unsupported timeframe."
+        }), 400
+
+    try:
+
+        # Use the same real Twelve Data market source
+        # already used by the main analyst.
+        market = fetch_market_data(
+            symbol=symbol,
+            interval=interval,
+            outputsize=100
+        )
+
+        # Calculate levels from the real OHLC candles.
+        levels = calculate_trade_levels(
+            market["candles"]
+        )
+
+        return jsonify({
+            "success": True,
+
+            "symbol": market["symbol"],
+            "interval": market["interval"],
+            "exchange": market["exchange"],
+            "currency": market["currency"],
+
+            **levels
+        })
+
+    except Exception as error:
+
+        return jsonify({
+            "success": False,
+            "error": str(error)
+        }), 400
+
+
+@app.route("/api/mt5-ea-status")
+def api_mt5_ea_status():
+
+    symbol = request.args.get(
+        "symbol",
+        "BTC/USD"
+    ).strip().upper()
+
+    interval = request.args.get(
+        "interval",
+        "1min"
+    ).strip()
+
+    allowed_intervals = {
+        "1min",
+        "5min",
+        "15min",
+        "30min",
+        "45min",
+        "1h",
+        "2h",
+        "4h",
+        "8h",
+        "1day",
+        "1week",
+        "1month"
+    }
+
+    if interval not in allowed_intervals:
+
+        return jsonify({
+            "success": False,
+            "error": "Unsupported timeframe."
+        }), 400
+
+    try:
+
+        market = fetch_market_data(
+            symbol=symbol,
+            interval=interval,
+            outputsize=100
+        )
+
+        candles = market["candles"]
+
+        indicators = calculate_indicators(
+            candles
+        )
+
+        analysis = analyze(
+            indicators
+        )
+
+        trend = analyze_trend(
+            candles
+        )
+
+        return jsonify({
+
+            "success": True,
+
+            "connection": {
+                "market_data": "CONNECTED",
+                "mt5": "NOT_CONNECTED",
+                "execution": "DISABLED"
+            },
+
+            "market": {
+                "symbol": market["symbol"],
+                "interval": market["interval"],
+                "exchange": market["exchange"],
+                "currency": market["currency"],
+                "current_price": market["current_price"]
+            },
+
+            "indicators": indicators,
+
+            "analysis": analysis,
+
+            "trend": trend,
+
+            "timestamp": candles[-1].get("datetime")
+                if candles
+                else None
+
+        })
+
+    except Exception as error:
+
+        return jsonify({
+            "success": False,
+            "error": str(error)
+        }), 400
+
+
+
+
+@app.route("/api/mt5-htf-bias")
+def api_mt5_htf_bias():
+
+    symbol = request.args.get(
+        "symbol",
+        "BTC/USD"
+    ).strip().upper()
+
+    interval = request.args.get(
+        "interval",
+        "1h"
+    ).strip()
+
+    allowed_intervals = {
+        "1min",
+        "5min",
+        "15min",
+        "30min",
+        "45min",
+        "1h",
+        "2h",
+        "4h",
+        "8h",
+        "1day",
+        "1week",
+        "1month"
+    }
+
+    if interval not in allowed_intervals:
+
+        return jsonify({
+            "success": False,
+            "error": "Unsupported timeframe."
+        }), 400
+
+    try:
+
+        market = fetch_market_data(
+            symbol=symbol,
+            interval=interval,
+            outputsize=100
+        )
+
+        bias = analyze_htf_bias(
+            market["candles"]
+        )
+
+        return jsonify({
+            "success": True,
+            "symbol": market["symbol"],
+            "interval": market["interval"],
+            "exchange": market["exchange"],
+            "currency": market["currency"],
+            "htf_bias": bias
+        })
+
+    except Exception as error:
+
+        return jsonify({
+            "success": False,
+            "error": str(error)
+        }), 400
+
+
+# ==============================================================
+# JTL ADVANCED — CROSS-PLATFORM TRADING INTELLIGENCE API
+# ==============================================================
+
+@app.route("/api/trading-markets")
+def api_trading_markets():
+
+    try:
+
+        markets = get_crypto_list()
+
+        return jsonify({
+            "success": True,
+            "source": "Twelve Data",
+            "markets": markets
+        })
+
+    except Exception as error:
+
+        return jsonify({
+            "success": False,
+            "error": str(error)
+        }), 400
+
+@app.route("/api/mt5/sync", methods=["POST"])
+def api_mt5_sync():
+
+    try:
+
+        payload = request.get_json(silent=True)
+
+        if not isinstance(payload, dict):
+            return jsonify({
+                "success": False,
+                "error": "Invalid JSON payload."
+            }), 400
+
+        account = payload.get("account", {})
+        broker = payload.get("broker", {})
+        position = payload.get("position", {})
+
+        FULL_TRADE_STATE["execution"] = {
+            "enabled": bool(broker.get("execution_enabled", False)),
+            "broker_connected": bool(broker.get("connected", False)),
+            "broker_confirmed": bool(broker.get("confirmed", False))
+        }
+
+        for key in ("balance", "equity", "free_margin", "used_margin"):
+            if key in account:
+                FULL_TRADE_STATE[key] = account[key]
+
+        if position:
+            FULL_TRADE_STATE["trade_id"] = position.get("ticket")
+            FULL_TRADE_STATE["symbol"] = position.get("symbol")
+            FULL_TRADE_STATE["direction"] = position.get("direction")
+            FULL_TRADE_STATE["entry_price"] = position.get("entry_price")
+            FULL_TRADE_STATE["current_price"] = position.get("current_price")
+            FULL_TRADE_STATE["stop_loss"] = position.get("stop_loss")
+            FULL_TRADE_STATE["take_profit"] = position.get("take_profit")
+            FULL_TRADE_STATE["quantity"] = position.get("volume")
+            FULL_TRADE_STATE["unrealized_pnl"] = position.get("unrealized_pnl")
+            FULL_TRADE_STATE["broker_position_id"] = position.get("ticket")
+        else:
+            FULL_TRADE_STATE["broker_position_id"] = None
+
+        return jsonify({
+            "success": True,
+            "received": True,
+            "state": dashboard_state(FULL_TRADE_STATE),
+            "message": "Real MT5 broker state synchronized."
+        })
+
+    except Exception as error:
+        return jsonify({
+            "success": False,
+            "error": str(error)
+        }), 500
+
+
+
+@app.route("/api/full-trade-state")
+def api_full_trade_state():
+
+    symbol = request.args.get(
+        "symbol",
+        "BTC/USD"
+    ).strip().upper()
+
+    interval = request.args.get(
+        "interval",
+        "1day"
+    ).strip()
+
+    allowed_intervals = {
+        "1min",
+        "5min",
+        "15min",
+        "30min",
+        "45min",
+        "1h",
+        "2h",
+        "4h",
+        "8h",
+        "1day",
+        "1week",
+        "1month"
+    }
+
+    if interval not in allowed_intervals:
+        return jsonify({
+            "success": False,
+            "error": "Unsupported timeframe."
+        }), 400
+
+    try:
+
+        # REAL Twelve Data market request.
+        market = fetch_market_data(
+            symbol=symbol,
+            interval=interval,
+            outputsize=100
+        )
+
+        # Reuse the existing JTL intelligence engine.
+        intelligence = build_trading_intelligence(
+            market
+        )
+
+        safe_state = dashboard_state(
+            FULL_TRADE_STATE
+        )
+
+        execution = safe_state.get(
+            "execution",
+            {}
+        )
+
+        broker_connected = bool(
+            execution.get(
+                "broker_connected",
+                False
+            )
+        )
+
+        return jsonify({
+
+            "success": True,
+
+            # Full Trade State
+            "state": safe_state,
+
+            # Broker status
+            "broker": {
+                "connected": broker_connected,
+                "confirmed": bool(
+                    execution.get(
+                        "broker_confirmed",
+                        False
+                    )
+                )
+            },
+
+            # Real broker values only.
+            # None means unavailable because no broker
+            # synchronization has supplied the value.
+            "account": {
+                "balance": safe_state.get("balance"),
+                "equity": safe_state.get("equity"),
+                "unrealized_pnl":
+                    safe_state.get("unrealized_pnl"),
+                "free_margin":
+                    safe_state.get("free_margin"),
+                "used_margin":
+                    safe_state.get("used_margin")
+            },
+
+            "positions": [],
+
+            "orders": [],
+
+            "events": safe_state.get(
+                "events",
+                []
+            ),
+
+            "last_sync": safe_state.get(
+                "last_update"
+            ),
+
+            # REAL market intelligence
+            "market": intelligence.get(
+                "market",
+                {}
+            ),
+
+            "indicators": intelligence.get(
+                "indicators",
+                {}
+            ),
+
+            "analysis": intelligence.get(
+                "analysis",
+                {}
+            ),
+
+            "trend": intelligence.get(
+                "trend",
+                {}
+            ),
+
+            "htf_bias": intelligence.get(
+                "htf_bias",
+                {}
+            ),
+
+            "trade_levels": intelligence.get(
+                "trade_levels",
+                {}
+            ),
+
+            "engine": intelligence.get(
+                "engine",
+                {}
+            )
+        })
+
+    except Exception as error:
+
+        return jsonify({
+            "success": False,
+            "error": str(error)
+        }), 500
+
+
+
+
+@app.route("/api/terminal")
+def api_terminal():
+
+    symbol = request.args.get(
+        "symbol",
+        "BTC/USD"
+    ).strip().upper()
+
+    interval = request.args.get(
+        "interval",
+        "1day"
+    ).strip()
+
+    allowed_intervals = {
+        "1min",
+        "5min",
+        "15min",
+        "30min",
+        "45min",
+        "1h",
+        "2h",
+        "4h",
+        "8h",
+        "1day",
+        "1week",
+        "1month"
+    }
+
+    if interval not in allowed_intervals:
+        return jsonify({
+            "success": False,
+            "error": "Unsupported timeframe."
+        }), 400
+
+    try:
+
+        market = fetch_market_data(
+            symbol=symbol,
+            interval=interval,
+            outputsize=100
+        )
+
+        intelligence = build_trading_intelligence(
+            market
+        )
+
+        execution = FULL_TRADE_STATE.get(
+            "execution",
+            {}
+        )
+
+        mt5_sync_received = bool(
+            execution.get(
+                "broker_confirmed",
+                False
+            )
+        )
+
+        terminal = build_terminal_state(
+            intelligence=intelligence,
+            trade_state=FULL_TRADE_STATE,
+            mt5_sync_received=mt5_sync_received,
+            trademux_connected=False
+        )
+
+        return jsonify({
+            "success": True,
+            "terminal": terminal
+        })
+
+    except Exception as error:
+
+        return jsonify({
+            "success": False,
+            "error": str(error)
+        }), 500
+
+
+@app.route("/api/trading-intelligence")
+
+def api_trading_intelligence():
+
+    symbol = request.args.get(
+        "symbol",
+        "BTC/USD"
+    ).strip().upper()
+
+    interval = request.args.get(
+        "interval",
+        "15min"
+    ).strip()
+
+    allowed_intervals = {
+        "1min",
+        "5min",
+        "15min",
+        "30min",
+        "45min",
+        "1h",
+        "2h",
+        "4h",
+        "8h",
+        "1day",
+        "1week",
+        "1month"
+    }
+
+    if interval not in allowed_intervals:
+
+        return jsonify({
+            "success": False,
+            "error": "Unsupported timeframe."
+        }), 400
+
+    try:
+
+        market = fetch_market_data(
+            symbol=symbol,
+            interval=interval,
+            outputsize=100
+        )
+
+        intelligence = build_trading_intelligence(
+            market
+        )
+
+        return jsonify({
+            "success": True,
+            **intelligence
+        })
+
+    except Exception as error:
+
+        return jsonify({
+            "success": False,
+            "error": str(error)
+        }), 400
+
+
+if __name__ == "__main__":
+
+    app.run(
+        host="127.0.0.1",
+        port=5000,
+        debug=True
+    )

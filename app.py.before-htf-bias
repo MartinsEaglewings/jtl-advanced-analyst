@@ -1,0 +1,285 @@
+from flask import Flask, jsonify, render_template, request
+
+from market_data import (
+    get_crypto_list,
+    fetch_market_data
+)
+
+from indicators import calculate_indicators
+from analyst import analyze
+from trend_analyst import analyze_trend
+from trade_levels import calculate_trade_levels
+
+
+app = Flask(__name__)
+
+
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+
+@app.route("/api/cryptos")
+def cryptos():
+
+    try:
+
+        coins = get_crypto_list()
+
+        return jsonify({
+            "success": True,
+            "count": len(coins),
+            "cryptos": coins
+        })
+
+    except Exception as error:
+
+        return jsonify({
+            "success": False,
+            "error": str(error)
+        }), 400
+
+
+@app.route("/api/analyze")
+def api_analyze():
+
+    symbol = request.args.get(
+        "symbol",
+        "BTC/USD"
+    ).strip().upper()
+
+    interval = request.args.get(
+        "interval",
+        "1min"
+    ).strip()
+
+    allowed_intervals = {
+        "1min",
+        "5min",
+        "15min",
+        "30min",
+        "45min",
+        "1h",
+        "2h",
+        "4h",
+        "8h",
+        "1day",
+        "1week",
+        "1month"
+    }
+
+    if interval not in allowed_intervals:
+
+        return jsonify({
+            "success": False,
+            "error": "Unsupported timeframe."
+        }), 400
+
+    try:
+
+        market = fetch_market_data(
+            symbol=symbol,
+            interval=interval,
+            outputsize=100
+        )
+
+        indicators = calculate_indicators(
+            market["candles"]
+        )
+
+        analysis = analyze(indicators)
+
+        return jsonify({
+
+            "success": True,
+
+            "market": market,
+
+            "current_price":
+                market["current_price"],
+
+            "indicators": indicators,
+
+            "analysis": analysis
+
+        })
+
+    except Exception as error:
+
+        return jsonify({
+            "success": False,
+            "error": str(error)
+        }), 400
+
+
+@app.route("/api/trade-levels")
+def api_trade_levels():
+
+    symbol = request.args.get(
+        "symbol",
+        "BTC/USD"
+    ).strip().upper()
+
+    interval = request.args.get(
+        "interval",
+        "1min"
+    ).strip()
+
+    allowed_intervals = {
+        "1min",
+        "5min",
+        "15min",
+        "30min",
+        "45min",
+        "1h",
+        "2h",
+        "4h",
+        "8h",
+        "1day",
+        "1week",
+        "1month"
+    }
+
+    if interval not in allowed_intervals:
+
+        return jsonify({
+            "success": False,
+            "error": "Unsupported timeframe."
+        }), 400
+
+    try:
+
+        # Use the same real Twelve Data market source
+        # already used by the main analyst.
+        market = fetch_market_data(
+            symbol=symbol,
+            interval=interval,
+            outputsize=100
+        )
+
+        # Calculate levels from the real OHLC candles.
+        levels = calculate_trade_levels(
+            market["candles"]
+        )
+
+        return jsonify({
+            "success": True,
+
+            "symbol": market["symbol"],
+            "interval": market["interval"],
+            "exchange": market["exchange"],
+            "currency": market["currency"],
+
+            **levels
+        })
+
+    except Exception as error:
+
+        return jsonify({
+            "success": False,
+            "error": str(error)
+        }), 400
+
+
+@app.route("/api/mt5-ea-status")
+def api_mt5_ea_status():
+
+    symbol = request.args.get(
+        "symbol",
+        "BTC/USD"
+    ).strip().upper()
+
+    interval = request.args.get(
+        "interval",
+        "1min"
+    ).strip()
+
+    allowed_intervals = {
+        "1min",
+        "5min",
+        "15min",
+        "30min",
+        "45min",
+        "1h",
+        "2h",
+        "4h",
+        "8h",
+        "1day",
+        "1week",
+        "1month"
+    }
+
+    if interval not in allowed_intervals:
+
+        return jsonify({
+            "success": False,
+            "error": "Unsupported timeframe."
+        }), 400
+
+    try:
+
+        market = fetch_market_data(
+            symbol=symbol,
+            interval=interval,
+            outputsize=100
+        )
+
+        candles = market["candles"]
+
+        indicators = calculate_indicators(
+            candles
+        )
+
+        analysis = analyze(
+            indicators
+        )
+
+        trend = analyze_trend(
+            candles
+        )
+
+        return jsonify({
+
+            "success": True,
+
+            "connection": {
+                "market_data": "CONNECTED",
+                "mt5": "NOT_CONNECTED",
+                "execution": "DISABLED"
+            },
+
+            "market": {
+                "symbol": market["symbol"],
+                "interval": market["interval"],
+                "exchange": market["exchange"],
+                "currency": market["currency"],
+                "current_price": market["current_price"]
+            },
+
+            "indicators": indicators,
+
+            "analysis": analysis,
+
+            "trend": trend,
+
+            "timestamp": candles[-1].get("datetime")
+                if candles
+                else None
+
+        })
+
+    except Exception as error:
+
+        return jsonify({
+            "success": False,
+            "error": str(error)
+        }), 400
+
+
+if __name__ == "__main__":
+
+    app.run(
+        host="127.0.0.1",
+        port=5000,
+        debug=True
+    )

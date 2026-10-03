@@ -1,0 +1,242 @@
+/* =========================================================
+   JTL ADVANCED — TRADE LEVELS INTERFACE
+   Independent frontend module
+   ========================================================= */
+
+.tl-open-button {
+    width: 100%;
+    margin-top: 18px;
+    padding: 15px 18px;
+    border: 1px solid rgba(212, 175, 55, 0.55);
+    border-radius: 14px;
+    background: linear-gradient(
+        135deg,
+        rgba(95, 8, 8, 0.96),
+        rgba(35, 3, 3, 0.98)
+    );
+    color: #d4af37;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    cursor: pointer;
+    transition: 0.25s ease;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+}
+
+.tl-open-button:hover {
+    transform: translateY(-2px);
+    border-color: #d4af37;
+    box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.35),
+        0 0 18px rgba(212, 175, 55, 0.15);
+}
+
+.tl-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background: rgba(0, 0, 0, 0.82);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.tl-overlay.tl-visible {
+    display: flex;
+}
+
+.tl-modal {
+    width: min(680px, 100%);
+    max-height: 92vh;
+    overflow-y: auto;
+    border: 1px solid rgba(212, 175, 55, 0.45);
+    border-radius: 22px;
+    background:
+        linear-gradient(
+            145deg,
+            rgba(45, 4, 4, 0.98),
+            rgba(12, 2, 2, 0.99)
+        );
+    box-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.65),
+        0 0 35px rgba(212, 175, 55, 0.08);
+    color: #fff;
+}
+
+.tl-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 20px;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.18);
+}
+
+.tl-title {
+    margin: 0;
+    color: #d4af37;
+    font-size: 19px;
+    font-weight: 900;
+    letter-spacing: 1px;
+}
+
+.tl-subtitle {
+    margin: 5px 0 0;
+    color: rgba(255, 255, 255, 0.62);
+    font-size: 12px;
+}
+
+.tl-close {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    border-radius: 50%;
+    background: rgba(80, 5, 5, 0.7);
+    color: #d4af37;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.tl-close:hover {
+    background: rgba(130, 10, 10, 0.9);
+}
+
+.tl-body {
+    padding: 20px;
+}
+
+.tl-status {
+    margin-bottom: 18px;
+    padding: 12px 14px;
+    border: 1px solid rgba(212, 175, 55, 0.18);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.035);
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 12px;
+}
+
+.tl-market-info {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.tl-info-card {
+    padding: 13px;
+    border: 1px solid rgba(212, 175, 55, 0.16);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.025);
+}
+
+.tl-label {
+    display: block;
+    margin-bottom: 6px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+.tl-value {
+    color: #fff;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.tl-direction {
+    color: #d4af37;
+}
+
+.tl-levels {
+    display: grid;
+    gap: 10px;
+}
+
+.tl-level {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 15px;
+    border-radius: 13px;
+    border: 1px solid rgba(212, 175, 55, 0.14);
+    background: rgba(255, 255, 255, 0.025);
+}
+
+.tl-level-name {
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.tl-level-price {
+    color: #d4af37;
+    font-size: 17px;
+    font-weight: 900;
+}
+
+.tl-level-rr {
+    margin-top: 3px;
+    color: rgba(255, 255, 255, 0.52);
+    font-size: 10px;
+}
+
+.tl-entry {
+    border-left: 3px solid #d4af37;
+}
+
+.tl-stop {
+    border-left: 3px solid #9b1c1c;
+}
+
+.tl-tp {
+    border-left: 3px solid #d4af37;
+}
+
+.tl-extra {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.tl-footer {
+    padding: 15px 20px 20px;
+    color: rgba(255, 255, 255, 0.42);
+    font-size: 10px;
+    line-height: 1.5;
+    text-align: center;
+}
+
+@media (max-width: 520px) {
+    .tl-overlay {
+        padding: 10px;
+    }
+
+    .tl-modal {
+        max-height: 94vh;
+        border-radius: 18px;
+    }
+
+    .tl-body {
+        padding: 15px;
+    }
+
+    .tl-market-info,
+    .tl-extra {
+        grid-template-columns: 1fr;
+    }
+
+    .tl-level {
+        padding: 13px;
+    }
+
+    .tl-level-price {
+        font-size: 15px;
+    }
+}
