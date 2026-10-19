@@ -9,8 +9,8 @@
     --border: rgba(211, 163, 72, 0.22);
     --gold: #d7a84b;
     --gold2: #f1cc78;
-    --red: #8e171d;
-    --red2: #c32832;
+    --red: #00C853;
+    --red2: #00E676;
     --text: #f5eee1;
     --muted: #9d9589;
     --green: #48d597;
@@ -293,7 +293,7 @@ select:focus {
     align-items: center;
     justify-content: center;
     border-radius: 12px;
-    background: rgba(142,23,29,.12);
+    background: rgba(0,200,83,.16);
     border: 1px solid var(--border);
 }
 

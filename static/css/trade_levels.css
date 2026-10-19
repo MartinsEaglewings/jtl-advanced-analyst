@@ -95,14 +95,14 @@
     flex-shrink: 0;
     border: 1px solid rgba(212, 175, 55, 0.35);
     border-radius: 50%;
-    background: rgba(80, 5, 5, 0.7);
+    background: rgba(0, 90, 40, 0.92);
     color: #d4af37;
     font-size: 22px;
     cursor: pointer;
 }
 
 .tl-close:hover {
-    background: rgba(130, 10, 10, 0.9);
+    background: #087A35;
 }
 
 .tl-body {
