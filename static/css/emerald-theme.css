@@ -1,38 +1,40 @@
-/* JTL Advanced Analyst — Black & Emerald Theme
-   Visual overrides only. No trading logic or data changes. */
+/* JTL Advanced Analyst — Clean White Theme
+   Visual overrides only. Trading logic and API behaviour unchanged. */
 
 :root {
-    color-scheme: dark;
+    color-scheme: light;
 
-    --bg: #050806;
-    --panel: #0b110e;
-    --panel2: #101a14;
+    --bg: #ffffff;
+    --panel: #ffffff;
+    --panel2: #f8fafc;
 
-    --gold: #10b981;
-    --gold2: #34d399;
+    --gold: #2563eb;
+    --gold2: #1d4ed8;
 
-    --green: #34d399;
-    --yellow: #fbbf24;
-    --danger: #f87171;
+    --green: #16a34a;
+    --yellow: #b45309;
+    --danger: #dc2626;
 
-    --text: #ecfdf5;
-    --muted: #9caea4;
+    --text: #171717;
+    --muted: #64748b;
 
-    --emerald: #10b981;
-    --emerald-bright: #34d399;
-    --emerald-dark: #047857;
-    --emerald-glow: rgba(16, 185, 129, 0.15);
+    --emerald: #2563eb;
+    --emerald-bright: #1d4ed8;
+    --emerald-dark: #1e40af;
+    --emerald-glow: rgba(37, 99, 235, 0.12);
 
-    --border: rgba(52, 211, 153, 0.18);
+    --border: #e2e8f0;
 }
 
-/* Main surfaces */
+/* Main page */
 html,
 body {
-    background-color: var(--bg);
-    color: var(--text);
+    background: #ffffff !important;
+    color: #171717 !important;
+    color-scheme: light !important;
 }
 
+/* Dashboard surfaces */
 header,
 nav,
 aside,
@@ -48,153 +50,7 @@ footer,
 .widget,
 .modal-content,
 .dropdown-menu {
-    border-color: var(--border);
-}
-
-/* Preserve dark surfaces while removing the old gold/red emphasis */
-.card,
-.panel,
-.dashboard-card,
-.stat-card,
-.metric-card,
-.widget,
-.modal-content,
-.dropdown-menu {
-    background-color: var(--panel);
-}
-
-/* Emerald links and active navigation */
-a {
-    color: var(--emerald-bright);
-}
-
-a:hover {
-    color: #6ee7b7;
-}
-
-.active,
-.active > a,
-nav .active,
-[aria-current="page"] {
-    color: var(--emerald-bright);
-}
-
-/* Primary actions */
-button,
-.btn,
-.button,
-input[type="submit"],
-input[type="button"],
-button.primary,
-.btn-primary {
-    border-color: var(--emerald-dark);
-}
-
-button:not(.danger):not(.delete):not(.loss),
-.btn:not(.btn-danger):not(.danger):not(.delete):not(.loss),
-input[type="submit"],
-input[type="button"] {
-    --button-accent: var(--emerald);
-}
-
-button:not(.danger):not(.delete):not(.loss):not(.btn-danger),
-.btn:not(.btn-danger):not(.danger):not(.delete):not(.loss),
-input[type="submit"],
-input[type="button"] {
-    background-color: var(--emerald-dark);
-    color: #f0fdf4;
-}
-
-button:not(.danger):not(.delete):not(.loss):hover,
-.btn:not(.btn-danger):not(.danger):not(.delete):not(.loss):hover,
-input[type="submit"]:hover,
-input[type="button"]:hover {
-    background-color: #059669;
-}
-
-/* Inputs and form controls */
-input,
-select,
-textarea {
-    border-color: var(--border);
-}
-
-input:focus,
-select:focus,
-textarea:focus {
-    border-color: var(--emerald);
-    outline-color: var(--emerald);
-    box-shadow: 0 0 0 2px var(--emerald-glow);
-}
-
-/* Tables and separators */
-table th,
-thead th {
-    background-color: var(--panel2);
-    color: var(--emerald-bright);
-}
-
-table td,
-table th,
-hr {
-    border-color: var(--border);
-}
-
-/* Emerald highlights; keep loss and error indicators distinct */
-.positive,
-.profit,
-.success,
-.status-success,
-.text-success {
-    color: var(--emerald-bright);
-}
-
-.negative,
-.loss,
-.danger,
-.error,
-.text-danger,
-.status-error {
-    color: #f87171;
-}
-
-.warning,
-.text-warning {
-    color: #fbbf24;
-}
-
-/* Selection and scrollbar accents */
-::selection {
-    background: rgba(16, 185, 129, 0.35);
-    color: #ffffff;
-}
-
-*:focus-visible {
-    outline-color: var(--emerald);
-}
-
-/* Strong two-green theme overrides */
-:root {
-    --bg: #050806 !important;
-    --panel: #071A12 !important;
-    --panel2: #064E3B !important;
-
-    --gold: #00C853 !important;
-    --gold2: #39E879 !important;
-    --red: #064E3B !important;
-    --red2: #00C853 !important;
-
-    --emerald: #00C853 !important;
-    --emerald-bright: #39E879 !important;
-    --emerald-dark: #064E3B !important;
-    --border: rgba(0, 200, 83, 0.35) !important;
-}
-
-/* Main background and dashboard surfaces */
-html,
-body {
-    background: #050806 !important;
-    color: #F0FFF5 !important;
+    border-color: #e2e8f0 !important;
 }
 
 header,
@@ -206,292 +62,208 @@ aside,
 .stat-card,
 .metric-card,
 .widget,
-.modal-content {
-    background-color: #071A12 !important;
-    border-color: #064E3B !important;
+.modal-content,
+.dropdown-menu {
+    background-color: #ffffff !important;
+    color: #171717 !important;
 }
 
-/* Replace common red theme accents with green */
+/* Headings and text */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+label,
+small,
+strong,
+b,
+.card *,
+.panel *,
+.dashboard-card *,
+.stat-card *,
+.metric-card *,
+.widget * {
+    color: inherit;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: #111827;
+}
+
+p,
+small,
+.muted,
+.text-muted,
+.subtitle {
+    color: #64748b;
+}
+
+/* Links and navigation */
+a {
+    color: #2563eb !important;
+}
+
+a:hover {
+    color: #1d4ed8 !important;
+}
+
+.active,
+.active > a,
+nav .active,
+[aria-current="page"] {
+    color: #1d4ed8 !important;
+}
+
+/* Buttons */
 button,
 .btn,
 .button,
-.btn-primary,
 button.primary,
+.btn-primary,
 input[type="submit"],
 input[type="button"],
 [role="button"] {
-    background-color: #064E3B !important;
-    border-color: #00C853 !important;
-    color: #FFFFFF !important;
+    background-color: #2563eb;
+    color: #ffffff;
+    border: 1px solid #2563eb;
 }
 
 button:hover,
 .btn:hover,
 .button:hover,
-.btn-primary:hover,
 button.primary:hover,
+.btn-primary:hover,
 input[type="submit"]:hover,
-input[type="button"]:hover {
-    background-color: #00C853 !important;
-    color: #04150B !important;
+input[type="button"]:hover,
+[role="button"]:hover {
+    background-color: #1d4ed8;
+    border-color: #1d4ed8;
+    color: #ffffff;
 }
 
-a,
-.active,
-[aria-current="page"] {
-    color: #39E879 !important;
+/* Preserve destructive-action styling */
+button.danger,
+button.delete,
+button.loss,
+.btn-danger,
+.btn-danger:hover,
+.danger,
+.delete {
+    background-color: #dc2626;
+    border-color: #dc2626;
+    color: #ffffff;
 }
 
-/* Keep dashboard headings and positive highlights green */
-h1, h2, h3,
-.section-title,
-.page-title,
-.dashboard-title,
-.text-success,
-.positive,
-.profit,
-.success {
-    color: #39E879 !important;
-}
-
-/* Inputs and table surfaces */
+/* Inputs and forms */
 input,
 select,
-textarea,
-table th,
-thead th {
-    background-color: #071A12 !important;
-    border-color: #064E3B !important;
-    color: #F0FFF5 !important;
+textarea {
+    background-color: #ffffff !important;
+    color: #171717 !important;
+    border: 1px solid #cbd5e1 !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: #94a3b8 !important;
 }
 
 input:focus,
 select:focus,
 textarea:focus {
-    border-color: #00C853 !important;
-    box-shadow: 0 0 0 2px rgba(0, 200, 83, 0.2) !important;
+    border-color: #2563eb !important;
+    outline-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
-/* ===== JTL LUXURY GREEN FINISH ===== */
-:root {
-    --bg: #030805 !important;
-    --panel: #071A12 !important;
-    --panel2: #0B3021 !important;
-    --gold: #00C853 !important;
-    --gold2: #69F0AE !important;
-    --red: #087443 !important;
-    --red2: #00C853 !important;
+/* Tables */
+table {
+    background-color: #ffffff !important;
+    color: #171717 !important;
+    border-color: #e2e8f0 !important;
 }
 
-/* Rich green surfaces */
-header, nav, aside, footer,
-.sidebar, .topbar, .navbar,
-.card, .panel, .widget,
-.dashboard-card, .stat-card, .metric-card,
-.modal-content, .dropdown-menu,
-.tab-content, .dashboard-panel {
-    background-color: #071A12 !important;
-    border-color: rgba(0, 200, 83, 0.3) !important;
+table th,
+thead th {
+    background-color: #f1f5f9 !important;
+    color: #334155 !important;
 }
 
-/* Navigation, selected items and tabs */
-nav a.active, .nav-link.active,
-.tab.active, .tab.active *,
-.active-tab, .selected,
-[aria-selected="true"] {
-    background-color: #0B3021 !important;
-    color: #69F0AE !important;
-    border-color: #00C853 !important;
+table td,
+table td *,
+table th,
+table th *,
+tr {
+    border-color: #e2e8f0 !important;
 }
 
-/* Green action buttons and decorative labels */
-.btn-success, .success-button,
-.primary-button, .action-button,
-.badge-success, .status-active,
-.progress-bar, progress::-webkit-progress-value {
-    background-color: #00C853 !important;
-    border-color: #00C853 !important;
-    color: #031108 !important;
+tbody tr:nth-child(even) {
+    background-color: #f8fafc;
 }
 
-/* Common red UI classes: green backgrounds, not forced green text */
-.btn-danger, .btn-secondary-red,
-.red-button, .danger-button,
-.bg-danger, .bg-red,
-.badge-danger, .red-badge,
-.border-danger, .border-red {
-    background-color: #087443 !important;
-    border-color: #00C853 !important;
+tbody tr:hover {
+    background-color: #eff6ff;
 }
 
-/* Red decorative accents from common inline hex colours */
-[style*="#8e171d" i],
-[style*="#8E171D" i],
-[style*="#c32832" i],
-[style*="#C32832" i],
-[style*="#dc2626" i],
-[style*="#ef4444" i],
-[style*="rgb(220, 38, 38)" i],
-[style*="rgb(239, 68, 68)" i] {
-    background-color: #087443 !important;
-    border-color: #00C853 !important;
+/* Trading results and status indicators */
+.positive,
+.profit,
+.success,
+.status-success,
+.text-success {
+    color: #15803d !important;
 }
 
-/* Polished green outlines and focus states */
-button:focus-visible, a:focus-visible,
-input:focus-visible, select:focus-visible,
-textarea:focus-visible {
-    outline: 2px solid #00C853 !important;
-    outline-offset: 2px;
+.negative,
+.loss,
+.danger,
+.error,
+.text-danger,
+.status-error {
+    color: #dc2626 !important;
 }
 
-button:hover, .btn:hover, .button:hover {
-    border-color: #69F0AE !important;
-    box-shadow: 0 0 12px rgba(0, 200, 83, 0.14);
+.warning,
+.text-warning {
+    color: #b45309 !important;
 }
 
-/* Keep financial meaning intact */
-.loss, .negative, .text-danger,
-.profit-loss-negative, .trade-loss {
-    /* Intentionally preserve the existing loss/error text colour. */
+/* Common chart and code containers */
+pre,
+code,
+.chart-container,
+.chart-wrapper {
+    border-color: #e2e8f0;
 }
 
-/* ===== JTL VIBRANT BRIGHT GREEN THEME ===== */
-:root {
-    --bg: #04140A !important;
-    --panel: #073D20 !important;
-    --panel2: #087A35 !important;
-    --gold: #00E676 !important;
-    --gold2: #69FF9A !important;
-    --green: #00E676 !important;
-    --emerald: #00E676 !important;
-    --emerald-bright: #69FF9A !important;
-    --emerald-dark: #087A35 !important;
-    --text: #F2FFF6 !important;
-    --muted: #B7E9C8 !important;
+/* Modals, dropdowns and separators */
+hr {
+    border-color: #e2e8f0 !important;
 }
 
-/* Vivid green headers, panels, cards and dashboard sections */
-header, nav, aside, .navbar, .topbar, .sidebar,
-.card, .panel, .widget, .dashboard-card,
-.stat-card, .metric-card, .dashboard-panel,
-.tab-content, .modal-content {
-    border-color: #00E676 !important;
+::selection {
+    background: #dbeafe;
+    color: #111827;
 }
 
-/* Make common red action controls green */
-.btn-danger, .btn-error, .danger-button,
-.red-button, .button-danger, .bg-danger,
-.badge-danger, .red-badge, .btn-secondary-red {
-    background: #00C853 !important;
-    background-image: none !important;
-    border-color: #69FF9A !important;
-    color: #04140A !important;
+*:focus-visible {
+    outline-color: #2563eb;
 }
 
-/* All primary actions should look vibrant */
-button, .btn, .button, .btn-primary,
-button.primary, input[type="submit"],
-input[type="button"], [role="button"] {
-    background-color: #00C853 !important;
-    background-image: none !important;
-    border-color: #69FF9A !important;
-    color: #04140A !important;
-}
-
-button:hover, .btn:hover, .button:hover,
-.btn-primary:hover, input[type="submit"]:hover {
-    background-color: #69FF9A !important;
-    border-color: #FFFFFF !important;
-    color: #04140A !important;
-    box-shadow: 0 0 18px rgba(0, 230, 118, 0.32) !important;
-}
-
-/* Bright green active navigation and tabs */
-.active, .active-tab, .selected,
-.nav-link.active, .tab.active,
-[aria-current="page"], [aria-selected="true"] {
-    background-color: #087A35 !important;
-    border-color: #00E676 !important;
-    color: #FFFFFF !important;
-}
-
-/* Replace common red decorative backgrounds */
-[style*="#8e171d" i],
-[style*="#c32832" i],
-[style*="#dc2626" i],
-[style*="#ef4444" i],
-[style*="#ff0000" i],
-[style*="red" i] {
-    background-color: #087A35 !important;
-    background-image: none !important;
-    border-color: #00E676 !important;
-}
-
-/* Bright green highlights and progress indicators */
-.progress-bar, progress::-webkit-progress-value,
-.text-success, .success, .positive, .profit {
-    color: #69FF9A !important;
-}
-
-a, .page-title, .section-title {
-    color: #69FF9A;
-}
-
-input:focus, select:focus, textarea:focus {
-    border-color: #00E676 !important;
-    box-shadow: 0 0 0 2px rgba(0, 230, 118, 0.25) !important;
-}
-
-/* ===== FINAL BRIGHT GREEN DASHBOARD OVERRIDES ===== */
-:root {
-    --red: #00C853 !important;
-    --red2: #00E676 !important;
-    --gold: #00E676 !important;
-    --gold2: #69FF9A !important;
-    --panel: #063D20 !important;
-    --panel2: #087A35 !important;
-    --emerald: #00E676 !important;
-    --emerald-bright: #69FF9A !important;
-}
-
-/* Dashboard surfaces and controls */
-button, .btn, .button, .analyze-button,
-.btn-primary, .primary-button,
-[role="button"] {
-    background-color: #00C853 !important;
-    background-image: none !important;
-    border-color: #69FF9A !important;
-    color: #031108 !important;
-}
-
-button:hover, .btn:hover, .button:hover,
-.analyze-button:hover {
-    background-color: #69FF9A !important;
-    color: #031108 !important;
-    box-shadow: 0 0 16px rgba(0, 230, 118, 0.3) !important;
-}
-
-.card, .panel, .widget, .dashboard-card,
-.stat-card, .metric-card, .dashboard-panel,
-.tab-content, .modal-content {
-    border-color: rgba(0, 230, 118, 0.45) !important;
-}
-
-a, .active, .active-tab, .section-title,
-.page-title, .dashboard-title {
-    color: #69FF9A !important;
-}
-
-/* Green accents for dashboard-specific controls */
-.analyze-button,
-[class*="mt5"] button,
-[class*="trade-level"] button,
-[class*="dashboard"] button {
-    border-color: #69FF9A !important;
-}
-
-/* Keep genuine loss/error text colours meaningful */
-.loss, .negative, .text-danger, .trade-loss {
-    /* No override: preserve financial/error meaning. */
+/* Keep disabled controls visibly disabled */
+button:disabled,
+.btn:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
 }
